@@ -1,0 +1,18 @@
+server:
+  port: 8761
+eureka:
+  instance:
+    hostname: eurekaserver
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+    serviceUrl:
+      defaultZone: http://${EUREKA_SERVER:localhost}:${server.port}/eureka/
+  server:
+    waitTimeInMsWhenSyncEmpty: 5      
+      
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
