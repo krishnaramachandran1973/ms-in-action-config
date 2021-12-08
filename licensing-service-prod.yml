@@ -1,0 +1,96 @@
+server:
+  port: 8081
+example:
+  property: I AM PROD
+  redis:
+    server: ${REDIS_SERVER:redis}
+    port: 6379
+spring:
+  cloud:
+    stream:
+      bindings:
+        input:
+          destination: orgChangeTopic
+          content-type: application/json
+          group: licensingGroup
+      kafka:
+        binder:
+          brokers:
+          - ${KAFKA_BROKER:kafka}
+          zkNodes:
+          - ${ZOOKEEPER:zookeeper}
+  sleuth:
+    sampler:
+      percentage: 1
+  zipkin:
+    base-url: http://${ZIPKIN_SERVER:zipkin}:9411     
+  datasource:
+    password: '{cipher}6b16fdf2c3c80dfae9426bcb7d4319ca59f339fbd22af68d03b1158460bcc5d5'
+    username: root
+    url: jdbc:mysql://${MYSQL_SERVER:localhost}:3306/ostock_dev 
+  jpa:
+    hibernate:
+      ddl-auto: update     
+    
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      default-zone: http://${EUREKA_SERVER:localhost}:8761/eureka/
+management:
+  endpoints:
+    enabled-by-default: true
+  endpoint:
+    health:
+      enabled: true
+      show-details: always
+  health:
+    db:
+      enabled: false
+    diskspace:
+      enabled: true
+    circuitbreakers:
+      enabled: true
+  
+resilience4j:
+  circuitbreaker:
+    instances:
+      licenseService:
+        registerHealthIndicator: true 
+        ringBufferSizeInClosedState: 5 
+        ringBufferSizeInHalfOpenState: 3  
+        waitDurationInOpenState: 10s   
+        failureRateThreshold: 20
+        recordExceptions:
+        - org.springframework.web.client.HttpServerErrorException
+        - java.io.IOException
+        - java.util.concurrent.TimeoutException
+        - org.springframework.web.client.ResourceAccessException
+  bulkhead:
+    instances:
+      bulkheadLicenseService:
+        maxWaitDuration: 10ms  
+        maxConcurrentCalls: 20
+  thread-pool-bulkhead:
+    instances:
+      bulkheadLicenseService:
+        maxThreadPoolSize: 2   
+        coreThreadPoolSize: 2   
+        queueCapacity: 2  
+        keepAliveDuration: 20ms            
+  retry:
+    instances:
+      retryLicenseService:
+        max-attempts: 5
+        wait-duration: 10000
+        retry-exceptions:
+          - java.util.concurrent.TimeoutException
+  ratelimiter:
+    instances:
+      licenseService:
+        timeout-duration: 1000ms
+        limit-refresh-period: 5000
+        limit-for-period: 5
