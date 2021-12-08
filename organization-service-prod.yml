@@ -1,0 +1,39 @@
+server:
+  port: 8082
+spring:
+  cloud:
+    stream:
+      bindings:
+        output:
+          destination: orgChangeTopic
+          content-type: application/json
+      kafka:
+        binder:
+          brokers:
+          - ${KAFKA_BROKER:kafka}
+          zkNodes:
+          - ${ZOOKEEPER:zookeeper}
+  sleuth:
+    sampler:
+      percentage: 1
+  zipkin:
+    base-url: http://${ZIPKIN_SERVER:zipkin}:9411         
+  datasource:
+    password: '{cipher}6b16fdf2c3c80dfae9426bcb7d4319ca59f339fbd22af68d03b1158460bcc5d5'
+    username: root
+    url: jdbc:mysql://${MYSQL_SERVER:localhost}:3306/ostock_dev 
+  jpa:
+    hibernate:
+      ddl-auto: update     
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      default-zone: http://${EUREKA_SERVER:localhost}:8761/eureka/
+logging:
+  level:
+    '[org.springframework.web]': warn
+    '[com.cts.organization]': debug       
